@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10100f">
+<title>ROYAL ROULETTE</title>
+<style>
+:root{--gold:#d9b65d;--gold2:#f5df9b;--ink:#10100f;--panel:#1a1a18;--muted:#aaa18b}
+body[data-theme="emerald"]{--gold:#59c6a0;--gold2:#baf5dc}
+body[data-theme="ruby"]{--gold:#dc6574;--gold2:#ffc0c8}
+body[data-theme="sapphire"]{--gold:#6da9ed;--gold2:#c6e0ff}
+body[data-theme="amethyst"]{--gold:#b18ae8;--gold2:#e2ceff}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+.layout>*{min-width:0}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 5%,#3b3020 0,#171613 38%,#090909 100%);color:#f5f0e4;font-family:Georgia,"Yu Mincho",serif}
+button,input{font:inherit}
+.app{width:min(100%,980px);margin:auto;padding:24px 18px 48px}
+header{text-align:center;margin:8px 0 22px}
+.kicker{font:11px/1.5 system-ui,sans-serif;letter-spacing:.42em;color:var(--gold);text-transform:uppercase}
+h1{font-size:clamp(30px,7vw,54px);letter-spacing:.12em;margin:6px 0;color:var(--gold2);text-shadow:0 2px 18px #b58a3544}
+.subtitle{color:#bdb39b;font:11px system-ui,sans-serif;letter-spacing:.2em}
+.layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:22px;align-items:start}
+.panel{background:linear-gradient(145deg,#24231f,#121210);border:1px solid #80652f;border-radius:18px;box-shadow:0 18px 50px #0009,inset 0 1px #ffffff12;padding:18px}
+.wheel-panel{text-align:center}
+.wheel-wrap{position:relative;width:min(100%,490px);aspect-ratio:1;margin:0 auto 16px;display:grid;place-items:center}
+canvas{width:100%;height:100%;filter:drop-shadow(0 12px 18px #000b)}
+.pointer{position:absolute;top:-3px;left:50%;transform:translateX(-50%);z-index:2;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:35px solid #f5d77f;filter:drop-shadow(0 2px 3px #000)}
+.hub{position:absolute;width:17%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff1b4,#c39a43 38%,#5b4016 72%,#17120a);border:4px solid #f4d987;box-shadow:0 0 0 5px #231b0e,0 4px 12px #000a;pointer-events:none}
+.result{min-height:56px;color:var(--gold2);font-size:clamp(19px,4vw,27px);letter-spacing:.08em;margin:8px 0 14px;text-shadow:0 0 15px #d8ad4b55}
+button{border:1px solid #d8b45e;border-radius:10px;padding:12px 16px;background:linear-gradient(180deg,#e8ca7b,#a77d2c);color:#17120a;font-weight:bold;letter-spacing:.08em;cursor:pointer;box-shadow:0 4px 12px #0006}
+button:active{transform:translateY(1px);filter:brightness(.94)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.spin{width:min(100%,300px);padding:16px;font-size:19px;letter-spacing:.25em;border-radius:30px}
+.secondary{background:#26231b;color:#e8d49d;border-color:#766039;box-shadow:none}
+.danger{background:#2b1b17;color:#e7b6a4;border-color:#754235;box-shadow:none}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.sound{display:inline-flex;align-items:center;gap:8px;color:#c9bd9e;font:13px system-ui,sans-serif;margin-top:15px}
+.theme-row{display:flex;align-items:center;justify-content:center;gap:9px;margin:12px auto 0;color:#c9bd9e;font:13px system-ui,sans-serif}
+.theme-row select{max-width:190px;background:#171613;color:var(--gold2);border:1px solid var(--gold);border-radius:8px;padding:8px 10px}
+.sound input{accent-color:#d9b65d}
+h2{font-size:17px;color:var(--gold2);letter-spacing:.12em;margin:0 0 14px}
+.hint{color:#a99f88;font:12px/1.6 system-ui,sans-serif}
+.addrow{display:flex;gap:8px;margin-bottom:12px}
+.addrow input{min-width:0;flex:1}
+input[type=text]{background:#0d0d0c;border:1px solid #5c4b2c;border-radius:8px;color:#f6efd9;padding:11px 12px;outline:none}
+input:focus{border-color:#d9b65d}
+.items{display:grid;gap:7px;max-height:290px;overflow:auto;padding-right:3px}
+.item{display:flex;align-items:center;gap:8px;background:#11110f;border:1px solid #383226;border-radius:8px;padding:7px 8px}
+.item .num{color:#b99a58;font:11px system-ui,sans-serif;width:22px}
+.item input{flex:1;min-width:0;padding:8px}
+.item .weight{width:72px;flex:0 0 72px;text-align:right}
+.item .chance{width:52px;text-align:right;color:var(--gold2);font:11px system-ui,sans-serif}
+.item button{padding:7px 10px;font:12px system-ui,sans-serif}
+.weight-head{display:flex;justify-content:space-between;gap:8px;color:#a99f88;font:11px system-ui,sans-serif;margin:0 3px 7px}
+.total-chance{color:var(--gold2);font:12px system-ui,sans-serif;margin:9px 2px 0}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.history{margin-top:18px}
+.history-list{display:grid;gap:6px;max-height:180px;overflow:auto}
+.history-entry{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #383226;padding:7px 2px;color:#e8dfc8;font:13px system-ui,sans-serif}
+.history-entry small{color:#938a76;white-space:nowrap}
+.empty{color:#817966;font:12px system-ui,sans-serif;padding:8px 0}
+footer{text-align:center;color:#726b5c;font:10px system-ui,sans-serif;letter-spacing:.12em;margin-top:24px}
+@media(max-width:720px){.app{padding:17px 12px 35px}.layout{grid-template-columns:minmax(0,1fr);gap:14px}.panel{padding:15px}.wheel-wrap{width:min(100%,420px)}.items{max-height:230px}.item{flex-wrap:wrap}.item input[type=text]{flex:1 1 120px}.item .weight{flex:0 0 64px;width:64px}.theme-row{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="kicker">The premium choice wheel</div><h1>ROYAL ROULETTE</h1><div class="subtitle">YOUR LUCK. YOUR CHOICE.</div></header>
+<main class="layout">
+<section class="panel wheel-panel">
+<div class="wheel-wrap"><div class="pointer"></div><canvas id="wheel" width="900" height="900" aria-label="ルーレット"></canvas><div class="hub"></div></div>
+<div class="result" id="result" aria-live="polite">運命の一手を。</div>
+<button class="spin" id="spin">SPIN</button>
+<div class="controls"><button class="secondary" id="reset">結果をリセット</button></div>
+<label class="sound"><input id="sound" type="checkbox" checked> サウンド ON</label>
+<div class="theme-row"><label for="theme">COLOR STYLE</label><select id="theme">
+<option value="royal">Royal Gold</option><option value="emerald">Emerald Green</option>
+<option value="ruby">Ruby Red</option><option value="sapphire">Sapphire Blue</option>
+<option value="amethyst">Amethyst Purple</option></select></div>
+</section>
+<aside class="panel">
+<h2>YOUR OPTIONS</h2>
+<div class="addrow"><input id="newItem" type="text" maxlength="32" placeholder="項目を入力"><button id="add">追加</button></div>
+<div class="weight-head"><span>項目名</span><span>設定値 → 実際の当選率</span></div>
+<div class="items" id="items"></div>
+<div class="total-chance" id="totalChance">当選率は設定値の比率で自動計算されます。</div>
+<div class="actions"><button class="secondary" id="share">LINEで共有</button><button class="secondary" id="copy">URLをコピー</button></div>
+<p class="hint">共有URLを開くと、同じ項目のルーレットが表示されます。履歴はそれぞれの端末に保存されます。</p>
+<div class="history"><h2>WIN HISTORY</h2><div class="history-list" id="history"></div><div class="controls"><button class="danger" id="clearHistory">履歴を消去</button></div></div>
+</aside>
+</main>
+<footer>ROYAL ROULETTE · GOOD LUCK</footer>
+</div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const palettes={
+ royal:['#a77b2e','#20201d','#c5a04b','#38332a','#8e6726','#292723','#d4b66b','#51452f','#b18a3c','#171715'],
+ emerald:['#176b50','#10251f','#36a77c','#1b4939','#83c9a8','#17382d','#2b8060','#254f40','#a5dfbf','#10201a'],
+ ruby:['#8d2437','#281116','#c04459','#57202b','#e18a96','#35151d','#a52d43','#692735','#f0aeb6','#211015'],
+ sapphire:['#174c83','#111e31','#377fc0','#203b5d','#8fc5f3','#172b45','#28649c','#294d72','#b4d9fa','#101925'],
+ amethyst:['#56318a','#21152f','#8c5bc5','#38234f','#c5a1ef','#2a1b3c','#7043a5','#493064','#dfc5ff','#1a1224']
+};
+let palette=palettes.royal;
+
+const defaults=['ランチ','カフェ','映画','買い物','散歩','自由時間'];
+let options=defaults.slice(),weights=defaults.map(()=>1),angle=0,spinning=false,history=[];
+const canvas=$('wheel'),ctx=canvas.getContext('2d');
+const storageKey='royalRouletteHistory_v1';
+try{history=JSON.parse(localStorage.getItem(storageKey)||'[]')}catch(e){history=[]}
+function saveHistory(){try{localStorage.setItem(storageKey,JSON.stringify(history.slice(0,50)))}catch(e){}}
+function applyTheme(name){
+ const safe=palettes[name]?name:'royal';palette=palettes[safe];document.body.dataset.theme=safe;
+ $('theme').value=safe;draw();
+}
+function totalWeight(){return weights.reduce((sum,w)=>sum+Math.max(0,Number(w)||0),0)}
+function probabilities(){
+ const total=totalWeight();
+ return weights.map(w=>total>0?Math.max(0,Number(w)||0)/total:0);
+}
+function draw(){
+ const n=Math.max(options.length,1),cx=450,cy=450,r=410,probs=probabilities();
+ ctx.clearRect(0,0,900,900);
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);
+ let cursor=-Math.PI/2;
+ for(let i=0;i<n;i++){
+  const slice=(probs[i]||0)*Math.PI*2;
+  const start=cursor,end=start+slice;
+  if(slice>0){
+   ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,start,end);ctx.closePath();
+   ctx.fillStyle=palette[i%palette.length];ctx.fill();
+   ctx.strokeStyle='#e8ca7b';ctx.lineWidth=5;ctx.stroke();
+   ctx.save();ctx.rotate(start+slice/2);ctx.textAlign='right';ctx.textBaseline='middle';
+   const label=options[i]||'項目なし';let size=Math.min(34,Math.max(12,280/(label.length||1)));
+   ctx.font=`bold ${size}px Georgia,serif`;ctx.fillStyle='#fff2c8';ctx.shadowColor='#000';ctx.shadowBlur=5;
+   ctx.fillText(label,r-35,0,Math.max(30,r*.66));ctx.restore();
+  }
+  cursor=end;
+ }
+ ctx.beginPath();ctx.arc(0,0,r+2,0,Math.PI*2);ctx.strokeStyle='#f2d88c';ctx.lineWidth=15;ctx.stroke();
+ for(let i=0;i<24;i++){const a=i*Math.PI*2/24;ctx.beginPath();ctx.arc(Math.cos(a)*(r+2),Math.sin(a)*(r+2),7,0,Math.PI*2);ctx.fillStyle='#f7e4a6';ctx.fill()}
+ ctx.restore();
+}
+function renderItems(){
+ $('items').innerHTML='';
+ const probs=probabilities();
+ options.forEach((v,i)=>{
+  const row=document.createElement('div');row.className='item';
+  const num=document.createElement('span');num.className='num';num.textContent=String(i+1).padStart(2,'0');
+  const input=document.createElement('input');input.type='text';input.maxLength=32;input.value=v;input.setAttribute('aria-label',`項目${i+1}`);
+  input.addEventListener('change',()=>{options[i]=input.value.trim()||`項目${i+1}`;input.value=options[i];draw()});
+  const weight=document.createElement('input');weight.type='number';weight.min='0';weight.max='100';weight.step='0.1';weight.value=weights[i];weight.className='weight';weight.setAttribute('aria-label',`${v}の当選確率設定値`);
+  weight.addEventListener('change',()=>{
+   const value=Math.max(0,Math.min(100,Number(weight.value)||0));
+   weights[i]=value;weight.value=value;renderItems();draw();
+  });
+  const chance=document.createElement('span');chance.className='chance';chance.textContent=(probs[i]*100).toFixed(1)+'%';
+  const del=document.createElement('button');del.className='danger';del.textContent='削除';del.addEventListener('click',()=>{if(options.length<=2){alert('項目は2つ以上必要です');return}options.splice(i,1);weights.splice(i,1);renderItems();draw()});
+  row.append(num,input,weight,chance,del);$('items').append(row);
+ });
+ const total=totalWeight();
+ $('totalChance').textContent=total>0
+  ? `設定値合計：${total.toFixed(1)} ／ 表示確率は合計100%になるよう自動換算`
+  : '設定値がすべて0です。1つ以上に0より大きい値を設定してください。';
+ $('spin').disabled=spinning||options.length<2||total<=0;
+}
+function renderHistory(){
+ const el=$('history');el.innerHTML='';
+ if(!history.length){el.innerHTML='<div class="empty">まだ当選履歴はありません。</div>';return}
+ history.slice(0,20).forEach(h=>{const row=document.createElement('div');row.className='history-entry';const name=document.createElement('strong');name.textContent=h.name;const date=document.createElement('small');date.textContent=h.date;row.append(name,date);el.append(row)});
+}
+function audioContext(){if(!$('sound').checked)return null;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;if(!window._royalAudio)window._royalAudio=new AC();if(window._royalAudio.state==='suspended')window._royalAudio.resume();return window._royalAudio}
+function tone(freq,duration,type='sine',volume=.04,delay=0){
+ const ac=audioContext();if(!ac)return;const t=ac.currentTime+delay,o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+duration+.02);
+}
+function clickSound(){tone(1050,.035,'square',.038)}
+function winSound(){tone(660,.25,'triangle',.12);tone(880,.32,'triangle',.10,.12);tone(1320,.48,'sine',.095,.27);tone(1760,.34,'triangle',.065,.42)}
+$('theme').addEventListener('change',e=>applyTheme(e.target.value));
+function spin(){
+ if(spinning||options.length<2)return;
+ audioContext();spinning=true;$('spin').disabled=true;$('result').textContent='運命が回り始めた……';
+ const probs=probabilities(),roll=Math.random();
+ let cumulative=0,winner=options.length-1;
+ for(let i=0;i<probs.length;i++){cumulative+=probs[i];if(roll<cumulative){winner=i;break}}
+ const startAngle=-Math.PI/2+probs.slice(0,winner).reduce((a,b)=>a+b,0)*Math.PI*2;
+ const target=-Math.PI/2-(startAngle+probs[winner]*Math.PI)*1;
+ const current=((angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+ const targetNorm=((target%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+ const extra= Math.PI*2*(5+Math.random()*2);
+ const delta=extra+((targetNorm-current+Math.PI*2)%(Math.PI*2));
+ const start=angle,duration=6200+Math.random()*900,begin=performance.now();
+ let lastTick=-1;
+ function frame(now){
+  const p=Math.min(1,(now-begin)/duration),ease=1-Math.pow(1-p,4);
+  angle=start+delta*ease;draw();
+  const tick=Math.floor(ease*delta/(Math.PI*2/Math.max(2,options.length)));
+  if(tick!==lastTick){lastTick=tick;const remaining=1-p;clickSound();if(remaining<.25)tone(600+remaining*1000,.025,'square',.025)}
+  if(p<1){requestAnimationFrame(frame)}else{
+   angle=((angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+   spinning=false;const name=options[winner];$('result').textContent='★ '+name+' ★';
+   history.unshift({name,date:new Date().toLocaleString('ja-JP',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})});
+   history=history.slice(0,50);saveHistory();renderHistory();renderItems();winSound();
+  }
+ }
+ requestAnimationFrame(frame);
+}
+function encodedState(){return btoa(unescape(encodeURIComponent(JSON.stringify({v:2,items:options.map((name,i)=>({name,weight:weights[i]}))}))))}
+function shareUrl(){const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('data',encodedState());return url.toString()}
+function shareLine(){const url=shareUrl();const text='ROYAL ROULETTEで遊ぼう！ '+url;location.href='https://line.me/R/msg/text/?'+encodeURIComponent(text)}
+function loadShared(){
+ const data=new URLSearchParams(location.search).get('data');if(!data)return;
+ try{
+  const parsed=JSON.parse(decodeURIComponent(escape(atob(data))));
+  if(Array.isArray(parsed.items)&&parsed.items.length>=2&&parsed.items.length<=40){
+   if(parsed.v===2&&parsed.items.every(x=>x&&typeof x==='object')){
+    options=parsed.items.map(x=>String(x.name).slice(0,32));
+    weights=parsed.items.map(x=>Math.max(0,Math.min(100,Number(x.weight)||0)));
+   }else if(parsed.v===1){
+    options=parsed.items.map(x=>String(x).slice(0,32));weights=options.map(()=>1);
+   }
+   $('result').textContent='共有ルーレットを読み込みました';
+  }
+ }catch(e){$('result').textContent='共有データを読み込めませんでした'}
+}
+$('add').addEventListener('click',()=>{const v=$('newItem').value.trim();if(!v)return;if(options.length>=40){alert('項目は40個までです');return}options.push(v);weights.push(1);$('newItem').value='';renderItems();draw()});
+$('newItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('add').click()});
+$('spin').addEventListener('click',spin);
+$('reset').addEventListener('click',()=>{$('result').textContent='運命の一手を。'});
+$('share').addEventListener('click',shareLine);
+$('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(shareUrl());$('copy').textContent='コピーしました！';setTimeout(()=>$('copy').textContent='URLをコピー',1600)}catch(e){prompt('このURLをコピーしてください',shareUrl())}});
+$('clearHistory').addEventListener('click',()=>{if(confirm('当選履歴をすべて消去しますか？')){history=[];saveHistory();renderHistory()}});
+loadShared();renderItems();renderHistory();applyTheme('royal');
+})();
+</script>
+</body>
+</html>
